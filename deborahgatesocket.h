@@ -7,7 +7,6 @@
 class DeborahGateSocket : public DeborahSocket
 {
     Q_OBJECT
-    int waitMaxTime;
 
     void txRxMessage(const QByteArray &data, bool txFlag);
     void txMessage(const QByteArray &data);

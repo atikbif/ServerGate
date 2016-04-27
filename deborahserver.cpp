@@ -18,8 +18,9 @@ DeborahSocket *DeborahServer::createSocket(DeborahServer::SocketType sType, qint
 }
 
 DeborahServer::DeborahServer(quint16 portNum, SocketType sType, QObject *parent): QTcpServer(parent),
-    socket(nullptr),thread(nullptr),type(sType)
+    waitMaxTime(3000),socket(nullptr),thread(nullptr),type(sType)
 {
+    connect(this,SIGNAL(message(QString)),this,SLOT(logMessage(QString)));
     if(listen(QHostAddress::Any,portNum)==false) emit message(QTime::currentTime().toString("hh:mm:ss.zzz") + ": error - " + errorString()+"\r\n");
 }
 
@@ -46,10 +47,11 @@ void DeborahServer::incomingConnection(qintptr handle)
 {
     if(socket!=nullptr) socket->stop();
     socket = createSocket(type,handle);
+    socket->setWaitMaxTime(waitMaxTime);
 
     thread = new QThread();
     socket->moveToThread(thread);
-    emit message(QTime::currentTime().toString("hh:mm:ss.zzz") + ": new connection (" + socket->peerAddress().toString() + ")\r\n");
+
 
     connect(socket,SIGNAL(newRequest(QByteArray,int)),this,SIGNAL(newRequest(QByteArray,int)));
     connect(socket,SIGNAL(message(QString)),this,SIGNAL(message(QString)));
@@ -58,10 +60,16 @@ void DeborahServer::incomingConnection(qintptr handle)
     connect(thread, SIGNAL (finished()), thread, SLOT (deleteLater()));
     connect(this,SIGNAL(startSocket()),socket,SLOT(start()));
     thread->start();
-    emit startSocket();
+    emit startSocket();  
 }
 
 void DeborahServer::treatExternalRequest(QByteArray reqData, int reqID)
 {
     if(socket!=nullptr) socket->treatExternalRequest(reqData, reqID);
+}
+
+void DeborahServer::logMessage(const QString &m)
+{
+    log+=m;
+    if(log.length()>=5000) log.remove(QRegExp("^[^\\r\\n]*\\r\\n"));
 }

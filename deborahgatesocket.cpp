@@ -2,6 +2,7 @@
 #include <QThread>
 #include <QDebug>
 #include <QDateTime>
+#include <QHostAddress>
 
 void DeborahGateSocket::txRxMessage(const QByteArray &data, bool txFlag)
 {
@@ -26,8 +27,7 @@ void DeborahGateSocket::rxMessage(const QByteArray &data)
     txRxMessage(data,false);
 }
 
-DeborahGateSocket::DeborahGateSocket(qintptr handle, QObject *parent): DeborahSocket(handle,parent),
-    waitMaxTime(5000)
+DeborahGateSocket::DeborahGateSocket(qintptr handle, QObject *parent): DeborahSocket(handle,parent)
 {
 
 }
@@ -38,6 +38,8 @@ void DeborahGateSocket::start()
     QByteArray data;
     if(setSocketDescriptor(descript)) {
         setSocketOption(QAbstractSocket::KeepAliveOption,true);
+        waitForConnected();
+        emit message(QTime::currentTime().toString("hh:mm:ss.zzz") + ": new connection (" + peerAddress().toString() + ")\r\n");
         forever {
             mutex.lock();
             if(stopCmd) {
@@ -58,7 +60,7 @@ void DeborahGateSocket::start()
                 write(r->data);
                 st = state();
                 if(st != SocketState::ConnectedState) {
-                    message(QTime::currentTime().toString("hh:mm:ss.zzz")+ ": not connected\r\n");
+                    emit message(QTime::currentTime().toString("hh:mm:ss.zzz")+ ": not connected\r\n");
                 }
                 else {
                     waitForBytesWritten(1000);
@@ -68,8 +70,8 @@ void DeborahGateSocket::start()
 
                     data.clear();
                     int tmr = 0;
-                    while(tmr<waitMaxTime) {
-                        if(waitForReadyRead(1)) {
+                    while(tmr<waitMaxTime/100) {
+                        if(waitForReadyRead(100)) {
                             data.append(readAll());
                             break;
                         }
@@ -78,7 +80,7 @@ void DeborahGateSocket::start()
                     if(data.count()) {
                         emit newRequest(data,r->id);
                         rxMessage(data);
-                    }
+                    }else emit message(QTime::currentTime().toString("hh:mm:ss.zzz")+ ": answer timeout\r\n");
                 }
                 delete r;
             }else mutex.unlock();

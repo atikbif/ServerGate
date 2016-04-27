@@ -6,7 +6,7 @@
 
 
 DeborahSocket::DeborahSocket(qintptr handle, QObject *parent): QTcpSocket(parent),
-    stopCmd(false), descript(handle)
+    waitMaxTime(3000), stopCmd(false), descript(handle)
 {
 
 }

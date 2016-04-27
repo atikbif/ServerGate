@@ -11,12 +11,15 @@ class DeborahServer : public QTcpServer
 {
     Q_OBJECT
     QString name;
+
 public:
     enum SocketType {GATE, MASTER, LOCAL};
 private:
+    int waitMaxTime;
     DeborahSocket* socket;
     QThread* thread;
     SocketType type;
+    QString log;
 
     DeborahSocket *createSocket(SocketType sType, qintptr handle);
 
@@ -29,10 +32,13 @@ public:
     SocketType getType() const {return type;}
     QString getName() const {return name;}
     void setName(const QString &value) {name = value;}
+    QString getLog() const {return log;}
+    void setWaitMaxTime(int value) {waitMaxTime = value;}
 protected:
     void incomingConnection(qintptr handle);
 private slots:
     void treatExternalRequest(QByteArray reqData, int reqID);
+    void logMessage(const QString &m);
 signals:
     startSocket();
     newRequest(QByteArray reqData, int reqID);

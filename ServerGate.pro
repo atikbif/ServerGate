@@ -4,9 +4,16 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT       += core gui network xml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+RC_ICONS = gateway.ico
+VERSION = 1.0.0.1
+QMAKE_TARGET_COMPANY = Kontel Co
+QMAKE_TARGET_PRODUCT = TCPGateway
+QMAKE_TARGET_DESCRIPTION = TCP ports gateway
+QMAKE_TARGET_COPYRIGHT = Kontel
 
 TARGET = ServerGate
 TEMPLATE = app

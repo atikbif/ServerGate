@@ -14,6 +14,7 @@ class DeborahSocket : public QTcpSocket
     Q_OBJECT
 
 protected:
+    int waitMaxTime;
     struct ReqData{
         QByteArray data;
         int id;
@@ -24,6 +25,7 @@ protected:
     mutable QMutex mutex;
 
 public:
+    void setWaitMaxTime(int value) {waitMaxTime = value;}
     explicit DeborahSocket(qintptr handle, QObject *parent = 0);
     ~DeborahSocket();
     void stop();
